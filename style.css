@@ -1,3 +1,6 @@
+/* ==========================================
+   VARIÁVEIS
+========================================== */
 :root {
   --green:       #1D9E75;
   --green-light: #EAF3DE;
@@ -18,6 +21,7 @@
   --text-hint:   #9a9a96;
   --radius:      12px;
   --radius-sm:   8px;
+  --sidebar-w:   240px;
 }
 
 /* ==========================================
@@ -36,70 +40,131 @@ body {
   min-height: 100vh;
 }
 
+/* ==========================================
+   LAYOUT PRINCIPAL
+========================================== */
 .app {
-  max-width: 480px;
-  margin: 0 auto;
-  min-height: 100vh;
   display: flex;
-  flex-direction: column;
+  min-height: 100vh;
 }
 
 /* ==========================================
-   HEADER
+   SIDEBAR
 ========================================== */
-.header {
+.sidebar {
+  width: var(--sidebar-w);
   background: var(--surface);
-  border-bottom: 0.5px solid var(--border);
-  padding: 14px 18px;
+  border-right: 0.5px solid var(--border);
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  position: sticky;
+  flex-direction: column;
+  position: fixed;
   top: 0;
+  left: 0;
+  height: 100vh;
   z-index: 10;
 }
 
-.header-brand {
+.sidebar-logo {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
+  padding: 24px 20px;
+  border-bottom: 0.5px solid var(--border);
 }
 
-.header-logo {
-  width: 36px;
-  height: 36px;
+.logo-box {
+  width: 38px;
+  height: 38px;
   background: var(--text);
-  border-radius: 8px;
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-family: 'Syne', sans-serif;
   font-weight: 700;
-  font-size: 13px;
+  font-size: 14px;
   color: white;
-  letter-spacing: -0.5px;
+  flex-shrink: 0;
 }
 
-.header-title {
+.logo-title {
   font-family: 'Syne', sans-serif;
   font-weight: 700;
-  font-size: 16px;
+  font-size: 15px;
 }
 
-.header-sub {
+.logo-sub {
   font-size: 11px;
   color: var(--text-muted);
   margin-top: 1px;
 }
 
+/* ==========================================
+   NAV DA SIDEBAR
+========================================== */
+.sidebar-nav {
+  flex: 1;
+  padding: 16px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.nav-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: none;
+  background: none;
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  font-family: 'Inter', sans-serif;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.15s;
+  text-align: left;
+}
+
+.nav-btn svg {
+  width: 18px;
+  height: 18px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  flex-shrink: 0;
+}
+
+.nav-btn:hover {
+  background: var(--bg);
+  color: var(--text);
+}
+
+.nav-btn.active {
+  background: var(--green-light);
+  color: var(--green-dark);
+  font-weight: 500;
+}
+
+/* ==========================================
+   FOOTER DA SIDEBAR
+========================================== */
+.sidebar-footer {
+  padding: 16px 20px;
+  border-top: 0.5px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
 .status-badge {
   display: flex;
   align-items: center;
-  gap: 5px;
-  padding: 5px 10px;
-  border-radius: 20px;
-  border: 0.5px solid var(--border-md);
-  font-size: 11px;
+  gap: 6px;
+  font-size: 12px;
   color: var(--text-muted);
 }
 
@@ -113,54 +178,47 @@ body {
 
 .status-dot.online { background: var(--green); }
 
+.sidebar-date {
+  font-size: 11px;
+  color: var(--text-hint);
+}
+
 /* ==========================================
-   NAVEGAÇÃO
+   ÁREA PRINCIPAL
 ========================================== */
-.nav {
+.main {
+  margin-left: var(--sidebar-w);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.main-header {
   background: var(--surface);
   border-bottom: 0.5px solid var(--border);
+  padding: 20px 32px;
   display: flex;
+  align-items: center;
+  justify-content: space-between;
   position: sticky;
-  top: 65px;
+  top: 0;
   z-index: 9;
 }
 
-.nav-btn {
-  flex: 1;
-  padding: 11px 4px 10px;
-  font-size: 11px;
-  font-family: 'Inter', sans-serif;
-  border: none;
-  background: none;
-  cursor: pointer;
+.main-title {
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 22px;
+}
+
+.main-sub {
+  font-size: 13px;
   color: var(--text-muted);
-  border-bottom: 2px solid transparent;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 3px;
-  transition: all 0.2s;
+  margin-top: 2px;
 }
 
-.nav-btn svg {
-  width: 20px;
-  height: 20px;
-  stroke: currentColor;
-  fill: none;
-  stroke-width: 1.8;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-.nav-btn.active {
-  color: var(--green);
-  border-bottom-color: var(--green);
-}
-
-/* ==========================================
-   ÁREA DE CONTEÚDO
-========================================== */
-.content {
-  padding: 14px 14px 80px;
+.main-content {
+  padding: 28px 32px;
   flex: 1;
 }

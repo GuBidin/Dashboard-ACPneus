@@ -1,50 +1,66 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="style.css">
-    <title>AC Pneus</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AC Pneus — Painel do Dono</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;700&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="app">
 
-  <!-- HEADER -->
-  <div class="header">
-    <div class="header-brand">
-      <div class="header-logo">AC</div>
+<div class="app">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-box">AC</div>
       <div>
-        <div class="header-title">AC Pneus</div>
-        <div class="header-sub" id="headerDate"></div>
+        <div class="logo-title">AC Pneus</div>
+        <div class="logo-sub">Painel do Dono</div>
       </div>
     </div>
-    <div class="status-badge">
-      <div class="status-dot" id="statusDot"></div>
-      <span id="statusTxt">conectando</span>
-    </div>
-  </div>
-   <!-- NAVEGAÇÃO -->
-  <div class="nav">
-    <button class="nav-btn active" id="tab-painel" onclick="showTab('painel')">
-      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
-      Painel
-    </button>
-    <button class="nav-btn" id="tab-registrar" onclick="showTab('registrar')">
-      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
-      Registrar
-    </button>
-    <button class="nav-btn" id="tab-gerenciar" onclick="showTab('gerenciar')">
-      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
-      Gerenciar
-    </button>
-  </div>
 
-  <!-- CONTEÚDO DAS ABAS -->
-  <div class="content" id="main-content">
-    <p style="color: var(--text-muted); padding: 20px;">Conteúdo virá aqui...</p>
-  </div>
+    <nav class="sidebar-nav">
+      <button class="nav-btn active" id="tab-painel" onclick="showTab('painel')">
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        Painel
+      </button>
+      <button class="nav-btn" id="tab-registrar" onclick="showTab('registrar')">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+        Registrar
+      </button>
+      <button class="nav-btn" id="tab-gerenciar" onclick="showTab('gerenciar')">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
+        Gerenciar
+      </button>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="status-badge">
+        <div class="status-dot" id="statusDot"></div>
+        <span id="statusTxt">conectando</span>
+      </div>
+      <div class="sidebar-date" id="headerDate"></div>
+    </div>
+  </aside>
+
+  <!-- CONTEÚDO PRINCIPAL -->
+  <main class="main">
+    <div class="main-header">
+      <div>
+        <h1 class="main-title" id="pageTitle">Painel</h1>
+        <p class="main-sub" id="pageSub">Resumo do dia de hoje</p>
+      </div>
+    </div>
+    <div class="main-content" id="main-content">
+      <p style="color: var(--text-muted)">Carregando...</p>
+    </div>
+  </main>
 
 </div>
+
 <script src="script.js"></script>
 </body>
 </html>
