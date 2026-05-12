@@ -76,8 +76,11 @@ function renderPainel() {
 
   </div>
 
-  <p class="section-title">Análises</p>
+<p class="section-title">Análises</p>
   ${renderGraficos()}
+
+  <p class="section-title">Equipe e atendimentos</p>
+  ${renderRankingEAtendimentos()}
   `;
 }
 
@@ -161,4 +164,75 @@ function animateBars() {
       b.style.height = Math.max(4, parseInt(b.dataset.h) / 100 * 80) + 'px';
     });
   }, 100);
+}
+// ==========================================
+//  RENDER RANKING + ATENDIMENTOS
+// ==========================================
+function renderRankingEAtendimentos() {
+  // Dados zerados — virão do Supabase no próximo passo
+  const funcionarios = [];
+  const atendimentos = [];
+
+  const rankingHTML = funcionarios.length > 0
+    ? funcionarios.map((f, i) => `
+      <div class="list-item">
+        <div class="list-item-left">
+          <div class="rank ${i === 0 ? 'gold' : ''}">${i + 1}</div>
+          <div>
+            <div class="list-name">${f.nome}</div>
+            <div class="list-sub">${f.qtd} serviço${f.qtd !== 1 ? 's' : ''}</div>
+          </div>
+        </div>
+        <div class="list-val">${f.val}</div>
+      </div>`).join('')
+    : `<div class="empty">
+        <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        Nenhum atendimento hoje
+      </div>`;
+
+  const atendimentosHTML = atendimentos.length > 0
+    ? atendimentos.map(a => `
+      <div class="list-item">
+        <div class="list-item-left">
+          <div>
+            <div class="list-name">
+              ${a.placa || '—'}
+              <span class="tag ${a.tipo === 'Carreta' ? 'blue' : 'green'}">${a.tipo}</span>
+            </div>
+            <div class="list-sub">${a.servico} · ${a.funcionario}</div>
+          </div>
+        </div>
+        <div>
+          <div class="list-val">${a.valor}</div>
+          <div class="list-val-sub">${a.hora}</div>
+        </div>
+      </div>`).join('')
+    : `<div class="empty">
+        <svg viewBox="0 0 24 24"><path d="M1 3h15l2 7H3L1 3z"/><circle cx="7" cy="17" r="2"/><circle cx="15" cy="17" r="2"/></svg>
+        Nenhum atendimento registrado hoje
+      </div>`;
+
+  return `
+  <div class="bottom-grid">
+
+    <!-- RANKING -->
+    <div class="card">
+      <div class="card-header">
+        <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 21 12 17.77 5.82 21 7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+        <span class="card-title">Ranking</span>
+      </div>
+      ${rankingHTML}
+    </div>
+
+    <!-- ÚLTIMOS ATENDIMENTOS -->
+    <div class="card">
+      <div class="card-header">
+        <svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+        <span class="card-title">Últimos atendimentos</span>
+      </div>
+      ${atendimentosHTML}
+    </div>
+
+  </div>
+  `;
 }
