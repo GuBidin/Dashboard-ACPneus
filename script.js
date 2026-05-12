@@ -1,6 +1,7 @@
-// ==========================================
-//  AUTENTICAÇÃO
-// ==========================================
+// ======================================================
+// AUTENTICAÇÃO, SESSÃO E SEGURANÇA
+// Tudo que controla login, token e redirecionamento
+// ======================================================
 const SUPA_URL = 'https://lnqnyxoluosjilmyodhz.supabase.co';
 const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxucW55eG9sdW9zamlsbXlvZGh6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg1MjQwNDksImV4cCI6MjA5NDEwMDA0OX0.wihQxSpw-tT_PxANoRECgkRd5g8ZoN4iFI7C2hFm8gY';
 
@@ -21,9 +22,10 @@ function sair() {
   }
 })();
 
-// ==========================================
-//  FUNÇÃO BASE DE API
-// ==========================================
+// ======================================================
+// FUNÇÃO BASE DE COMUNICAÇÃO COM O SUPABASE (API)
+// Toda requisição ao banco passa obrigatoriamente por aqui
+// ======================================================
 function getHeaders() {
   const s = getSessao();
   return {
@@ -45,16 +47,18 @@ async function api(path, method = 'GET', body = null) {
   return t ? JSON.parse(t) : [];
 }
 
-// ==========================================
-//  ESTADO GLOBAL
-// ==========================================
+// ======================================================
+// ESTADO GLOBAL DO SISTEMA (MEMÓRIA TEMPORÁRIA)
+// Esses arrays guardam os dados carregados do banco
+// ======================================================
 let funcionarios = [];
 let servicos     = [];
 let atendimentos = [];
 
-// ==========================================
-//  CARREGAR DADOS DO SUPABASE
-// ==========================================
+// ======================================================
+// CARREGAMENTO DE DADOS DO BANCO (SUPABASE)
+// Busca funcionários, serviços e atendimentos do dia
+// ======================================================
 async function carregarDados() {
   try {
     const hoje = new Date().toISOString().split('T')[0];
@@ -70,17 +74,18 @@ async function carregarDados() {
   }
 }
 
-// ==========================================
-//  STATUS ONLINE/OFFLINE
-// ==========================================
+// ======================================================
+// 🟢 STATUS DE CONEXÃO COM O BANCO (ONLINE / OFFLINE)
+// Apenas feedback visual no topo da tela
+// ======================================================
 function setStatus(ok) {
   document.getElementById('statusDot').className = 'status-dot' + (ok ? ' online' : '');
   document.getElementById('statusTxt').textContent = ok ? 'online' : 'offline';
 }
 
-// ==========================================
-//  FORMATAR MOEDA
-// ==========================================
+// ======================================================
+// FUNÇÃO PARA FORMATAR VALORES EM REAL (R$)
+// ======================================================
 function brl(v) {
   return 'R$ ' + parseFloat(v || 0).toLocaleString('pt-BR', {
     minimumFractionDigits: 2,
@@ -88,9 +93,10 @@ function brl(v) {
   });
 }
 
-// ==========================================
-//  TOAST
-// ==========================================
+// ======================================================
+// TOAST(ALERTA) DE MENSAGENS (SUCESSO / ERRO)
+// Pequenas notificações que aparecem na tela
+// ======================================================
 function showToast(msg, err = false) {
   const t = document.getElementById('toast');
   t.textContent = msg;
@@ -98,9 +104,9 @@ function showToast(msg, err = false) {
   setTimeout(() => t.className = 'toast', 2800);
 }
 
-// ==========================================
-//  DATA NO FOOTER DA SIDEBAR
-// ==========================================
+// ======================================================
+// DATA ATUAL EXIBIDA NO FOOTER DA SIDEBAR
+// ======================================================
 const hoje = new Date();
 const dias  = ['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'];
 const meses = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
@@ -108,9 +114,10 @@ const meses = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov'
 document.getElementById('headerDate').textContent =
   dias[hoje.getDay()] + ', ' + hoje.getDate() + ' de ' + meses[hoje.getMonth()];
 
-// ==========================================
-//  NAVEGAÇÃO ENTRE ABAS
-// ==========================================
+// ======================================================
+// NAVEGAÇÃO ENTRE AS ABAS DO SISTEMA
+// Troca Painel, Registrar e Gerenciar dinamicamente
+// ======================================================
 let currentTab = 'painel';
 
 const pageTitles = {
@@ -132,9 +139,10 @@ async function showTab(tab) {
   if (tab === 'gerenciar') { document.getElementById('main-content').innerHTML = renderGerenciar(); preencherListas(); }
 }
 
-// ==========================================
-//  RENDER PAINEL
-// ==========================================
+// ======================================================
+// RENDERIZAÇÃO DO PAINEL PRINCIPAL (DASHBOARD)
+// Cálculos de métricas, totais, ranking e horários
+// ======================================================
 function renderPainel() {
   const total = atendimentos.length;
   const fat   = atendimentos.reduce((s, a) => s + parseFloat(a.valor || 0), 0);
@@ -188,9 +196,10 @@ function renderPainel() {
   ${renderRankingEAtendimentos()}`;
 }
 
-// ==========================================
-//  RENDER GRÁFICOS
-// ==========================================
+// ======================================================
+// GERAÇÃO DOS GRÁFICOS VISUAIS DO PAINEL
+// Serviços mais feitos e movimento por horário
+// ======================================================
 function renderGraficos() {
   const porServ = {};
   atendimentos.forEach(a => { porServ[a.servico] = (porServ[a.servico] || 0) + 1; });
@@ -239,9 +248,9 @@ function renderGraficos() {
   </div>`;
 }
 
-// ==========================================
-//  ANIMAR BARRAS
-// ==========================================
+// ======================================================
+//  ANIMAÇÃO VISUAL DAS BARRAS DOS GRÁFICOS
+// ======================================================
 function animateBars() {
   setTimeout(() => {
     document.querySelectorAll('.bar-fill[data-pct]').forEach(b => { b.style.width = b.dataset.pct + '%'; });
@@ -249,9 +258,10 @@ function animateBars() {
   }, 100);
 }
 
-// ==========================================
-//  RENDER RANKING + ATENDIMENTOS
-// ==========================================
+// ======================================================
+// RANKING DE FUNCIONÁRIOS E LISTA DE ATENDIMENTOS
+// Parte inferior do painel
+// ======================================================
 function renderRankingEAtendimentos() {
   const porFunc = {};
   atendimentos.forEach(a => {
@@ -299,9 +309,10 @@ function renderRankingEAtendimentos() {
   </div>`;
 }
 
-// ==========================================
-//  RENDER FORMULÁRIO DE REGISTRO
-// ==========================================
+// ======================================================
+// FORMULÁRIO PARA REGISTRAR NOVO ATENDIMENTO
+// Tela "Registrar"
+// ======================================================
 function renderRegistrar() {
   return `
   <div class="form-container">
@@ -342,9 +353,10 @@ function renderRegistrar() {
   </div>`;
 }
 
-// ==========================================
-//  PREENCHER SELECTS DO FORMULÁRIO
-// ==========================================
+// ======================================================
+// PREENCHIMENTO AUTOMÁTICO DOS CAMPOS SELECT
+// Carrega serviços e funcionários no formulário
+// ======================================================
 function preencherSelects() {
   const selServ = document.getElementById('f-servico');
   const selFunc = document.getElementById('f-func');
@@ -366,9 +378,9 @@ function preencherSelects() {
   });
 }
 
-// ==========================================
-//  REGISTRAR ATENDIMENTO
-// ==========================================
+// ======================================================
+// ENVIO DO ATENDIMENTO PARA O SUPABASE (SALVAR)
+// ======================================================
 async function registrar() {
   const btn = document.getElementById('btn-registrar');
   btn.disabled = true;
@@ -396,9 +408,10 @@ async function registrar() {
   btn.textContent = 'Registrar atendimento';
 }
 
-// ==========================================
-//  RENDER GERENCIAR
-// ==========================================
+// ======================================================
+// TELA DE GERENCIAMENTO DO SISTEMA
+// Cadastro e remoção de funcionários e serviços
+// ======================================================
 function renderGerenciar() {
   return `
   <div class="manage-grid">
@@ -436,9 +449,9 @@ function renderGerenciar() {
   </div>`;
 }
 
-// ==========================================
-//  PREENCHER LISTAS DO GERENCIAR
-// ==========================================
+// ======================================================
+// PREENCHIMENTO DAS LISTAS DE FUNCIONÁRIOS E SERVIÇOS
+// ======================================================
 function preencherListas() {
   const listaFunc = document.getElementById('lista-funcionarios');
   const listaServ = document.getElementById('lista-servicos');
@@ -459,9 +472,9 @@ function preencherListas() {
     : '<div style="color:var(--text-hint);font-size:13px;padding:12px 0">Nenhum serviço cadastrado</div>';
 }
 
-// ==========================================
-//  HELPERS GERENCIAR
-// ==========================================
+// ======================================================
+// FUNÇÕES AUXILIARES: ADICIONAR / REMOVER ITENS
+// ======================================================
 function toggleForm(id) { document.getElementById(id).classList.toggle('open'); }
 
 async function addFuncionario() {
@@ -491,9 +504,10 @@ async function deleteServico(id) {
   catch (e) { showToast('Erro ao remover!', true); }
 }
 
-// ==========================================
-//  INICIA O APP
-// ==========================================
+// ======================================================
+// INICIALIZAÇÃO AUTOMÁTICA DO SISTEMA
+// Carrega painel ao abrir e atualiza a cada 30s
+// ======================================================
 showTab('painel');
 
 setInterval(() => {
