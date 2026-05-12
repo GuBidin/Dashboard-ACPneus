@@ -39,10 +39,11 @@ async function fazerLogin() {
     if (!res.ok || data.error) throw new Error();
 
     localStorage.setItem('ac_session', JSON.stringify({
-      access_token:  data.access_token,
-      refresh_token: data.refresh_token,
-      expires_at:    Date.now() + (data.expires_in * 1000)
-    }));
+  access_token:  data.access_token,
+  refresh_token: data.refresh_token,
+  expires_at:    Date.now() + (data.expires_in * 1000),
+  user:          data.user
+}));
 
     window.location.href = '../index.html';
 

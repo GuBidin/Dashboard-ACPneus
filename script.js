@@ -505,9 +505,26 @@ async function deleteServico(id) {
 }
 
 // ======================================================
+// PERFIL DO USUÁRIO LOGADO
+// ======================================================
+function carregarPerfil() {
+  const s = getSessao();
+  if (!s) return;
+  const email  = s.user?.email || '';
+  const nome   = s.user?.user_metadata?.full_name
+              || s.user?.user_metadata?.name
+              || email.split('@')[0]
+              || 'Usuário';
+  document.getElementById('user-name').textContent   = nome;
+  document.getElementById('user-avatar').textContent = nome.charAt(0).toUpperCase();
+}
+
+// ======================================================
 // INICIALIZAÇÃO AUTOMÁTICA DO SISTEMA
 // Carrega painel ao abrir e atualiza a cada 30s
 // ======================================================
+
+carregarPerfil();
 showTab('painel');
 
 setInterval(() => {
