@@ -81,13 +81,15 @@ function renderPainel() {
 
   <p class="section-title">Equipe e atendimentos</p>
   ${renderRankingEAtendimentos()}
+
   `;
+
 }
 
   // Placeholder por enquanto
 // Renderiza a aba correta
 if (tab === 'painel')    document.getElementById('main-content').innerHTML = renderPainel();
-if (tab === 'registrar') document.getElementById('main-content').innerHTML = '<p style="color:var(--text-muted)">📝 Formulário virá aqui...</p>';
+if (tab === 'registrar') {document.getElementById('main-content').innerHTML = renderRegistrar();}
 if (tab === 'gerenciar') document.getElementById('main-content').innerHTML = '<p style="color:var(--text-muted)">⚙️ Gerenciar virá aqui...</p>';
 
   document.getElementById('main-content').innerHTML = content[tab];
@@ -235,4 +237,104 @@ function renderRankingEAtendimentos() {
 
   </div>
   `;
+}
+
+// ==========================================
+//  TOAST
+// ==========================================
+function showToast(msg, err = false) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast' + (err ? ' error' : '') + ' show';
+  setTimeout(() => t.className = 'toast', 2800);
+}
+
+// ==========================================
+//  RENDER FORMULÁRIO DE REGISTRO
+// ==========================================
+function renderRegistrar() {
+  return `
+  <div class="form-container">
+    <p class="section-title">Novo atendimento</p>
+    <div class="form-card">
+      <div class="form-grid">
+
+        <div class="form-group">
+          <label>Placa do veículo</label>
+          <input id="f-placa" placeholder="ABC-1234" style="text-transform:uppercase">
+        </div>
+
+        <div class="form-group">
+          <label>Tipo de veículo</label>
+          <select id="f-tipo">
+            <option value="Caminhão">🚛 Caminhão</option>
+            <option value="Carreta">🚚 Carreta</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Serviço</label>
+          <select id="f-servico">
+            <option value="">Selecione o serviço...</option>
+            <option value="__outro__">Outro (digitar)</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Valor cobrado (R$)</label>
+          <input id="f-valor" type="number" step="0.01" min="0" placeholder="0,00">
+        </div>
+
+        <div class="form-group" id="outro-wrap" style="display:none">
+          <label>Nome do serviço</label>
+          <input id="f-servico-outro" placeholder="Digite o serviço">
+        </div>
+
+        <div class="form-group">
+          <label>Funcionário responsável</label>
+          <select id="f-func">
+            <option value="">Selecione o funcionário...</option>
+          </select>
+        </div>
+
+      </div>
+
+      <hr class="form-divider">
+
+      <button class="btn-primary" id="btn-registrar" onclick="registrar()">
+        Registrar atendimento
+      </button>
+    </div>
+  </div>
+  `;
+}
+
+// ==========================================
+//  REGISTRAR ATENDIMENTO (sem Supabase ainda)
+// ==========================================
+async function registrar() {
+  const btn = document.getElementById('btn-registrar');
+  btn.disabled = true;
+  btn.textContent = 'Registrando...';
+
+  const placa   = document.getElementById('f-placa').value.trim().toUpperCase();
+  const tipo    = document.getElementById('f-tipo').value;
+  const servSel = document.getElementById('f-servico').value;
+  const servico = servSel === '__outro__'
+    ? document.getElementById('f-servico-outro').value.trim()
+    : servSel;
+  const valor   = document.getElementById('f-valor').value;
+  const funcId  = document.getElementById('f-func').value;
+
+  if (!servico || !valor || !funcId) {
+    showToast('Preencha todos os campos!', true);
+    btn.disabled = false;
+    btn.textContent = 'Registrar atendimento';
+    return;
+  }
+
+  // Por enquanto só mostra o toast — Supabase vem no próximo commit!
+  showToast('Atendimento registrado com sucesso!');
+  btn.disabled = false;
+  btn.textContent = 'Registrar atendimento';
 }
