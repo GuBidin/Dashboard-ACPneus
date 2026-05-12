@@ -222,3 +222,203 @@ body {
   padding: 28px 32px;
   flex: 1;
 }
+/* ==========================================
+   SECTION TITLE
+========================================== */
+.section-title {
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--text-hint);
+  margin: 28px 0 12px;
+}
+
+.section-title:first-child { margin-top: 0; }
+
+/* ==========================================
+   GRID DE CARDS
+========================================== */
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 8px;
+}
+
+.metric-card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  border: 0.5px solid var(--border);
+  padding: 20px;
+  transition: border-color 0.2s;
+}
+
+.metric-card:hover { border-color: var(--border-md); }
+
+.metric-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 14px;
+}
+
+.metric-icon svg {
+  width: 18px;
+  height: 18px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.metric-icon.green { background: var(--green-light); color: var(--green-dark); }
+.metric-icon.blue  { background: var(--blue-light);  color: var(--blue); }
+.metric-icon.amber { background: var(--amber-light); color: var(--amber); }
+.metric-icon.coral { background: var(--coral-light); color: var(--coral); }
+
+.metric-label {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+
+.metric-value {
+  font-family: 'Syne', sans-serif;
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.metric-value.sm { font-size: 20px; }
+
+.metric-sub {
+  font-size: 11px;
+  color: var(--text-hint);
+  margin-top: 4px;
+}
+
+/* ==========================================
+   GRID DE DOIS PAINÉIS
+========================================== */
+.panels-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+/* ==========================================
+   CARD GENÉRICO
+========================================== */
+.card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  border: 0.5px solid var(--border);
+  padding: 20px;
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+  padding-bottom: 14px;
+  border-bottom: 0.5px solid var(--border);
+}
+
+.card-header svg {
+  width: 16px;
+  height: 16px;
+  stroke: var(--green);
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.card-title {
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+}
+
+/* ==========================================
+   BARRAS DE SERVIÇOS
+========================================== */
+.bar-row {
+  margin-bottom: 14px;
+}
+
+.bar-row:last-child { margin-bottom: 0; }
+
+.bar-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  margin-bottom: 6px;
+}
+
+.bar-label span:last-child {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.bar-track {
+  height: 8px;
+  background: var(--bg);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  background: var(--green);
+  transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ==========================================
+   GRÁFICO DE HORÁRIOS
+========================================== */
+.hour-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 8px;
+  align-items: flex-end;
+}
+
+.hour-cell { text-align: center; }
+
+.hour-bar-wrap {
+  height: 80px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  margin-bottom: 6px;
+}
+
+.hour-bar {
+  width: 28px;
+  border-radius: 4px 4px 0 0;
+  background: var(--green-light);
+  transition: height 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  min-height: 4px;
+}
+
+.hour-bar.peak { background: var(--coral); }
+
+.hour-label {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.hour-count {
+  font-size: 10px;
+  color: var(--text-hint);
+  margin-top: 2px;
+}
