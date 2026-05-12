@@ -90,7 +90,7 @@ function renderPainel() {
 // Renderiza a aba correta
 if (tab === 'painel')    document.getElementById('main-content').innerHTML = renderPainel();
 if (tab === 'registrar') {document.getElementById('main-content').innerHTML = renderRegistrar();}
-if (tab === 'gerenciar') document.getElementById('main-content').innerHTML = '<p style="color:var(--text-muted)">⚙️ Gerenciar virá aqui...</p>';
+if (tab === 'gerenciar') {document.getElementById('main-content').innerHTML = renderGerenciar();}
 
   document.getElementById('main-content').innerHTML = content[tab];
 }
@@ -337,4 +337,101 @@ async function registrar() {
   showToast('Atendimento registrado com sucesso!');
   btn.disabled = false;
   btn.textContent = 'Registrar atendimento';
+}
+
+// ==========================================
+//  RENDER GERENCIAR
+// ==========================================
+function renderGerenciar() {
+  return `
+  <div class="manage-grid">
+
+    <!-- FUNCIONÁRIOS -->
+    <div class="card">
+      <div class="card-header">
+        <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <span class="card-title">Funcionários</span>
+      </div>
+
+      <div id="lista-funcionarios">
+        <div class="empty">
+          <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+          Nenhum funcionário cadastrado
+        </div>
+      </div>
+
+      <div class="add-form" id="form-func">
+        <div class="form-group">
+          <label>Nome do funcionário</label>
+          <input id="new-func-nome" placeholder="Ex: Carlos">
+        </div>
+        <div class="add-form-row">
+          <button class="btn-primary" onclick="addFuncionario()">Adicionar</button>
+          <button class="btn-secondary" onclick="toggleForm('form-func')">Cancelar</button>
+        </div>
+      </div>
+
+      <button class="btn-secondary" onclick="toggleForm('form-func')">
+        + Adicionar funcionário
+      </button>
+    </div>
+
+    <!-- SERVIÇOS -->
+    <div class="card">
+      <div class="card-header">
+        <svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+        <span class="card-title">Serviços e preços</span>
+      </div>
+
+      <div id="lista-servicos">
+        <div class="empty">
+          <svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+          Nenhum serviço cadastrado
+        </div>
+      </div>
+
+      <div class="add-form" id="form-serv">
+        <div class="form-group">
+          <label>Nome do serviço</label>
+          <input id="new-serv-nome" placeholder="Ex: Troca de Pneu">
+        </div>
+        <div class="form-group">
+          <label>Preço sugerido (opcional)</label>
+          <input id="new-serv-preco" type="number" step="0.01" placeholder="0,00">
+        </div>
+        <div class="add-form-row">
+          <button class="btn-primary" onclick="addServico()">Adicionar</button>
+          <button class="btn-secondary" onclick="toggleForm('form-serv')">Cancelar</button>
+        </div>
+      </div>
+
+      <button class="btn-secondary" onclick="toggleForm('form-serv')">
+        + Adicionar serviço
+      </button>
+    </div>
+
+  </div>
+  `;
+}
+
+// ==========================================
+//  HELPERS GERENCIAR (sem Supabase ainda)
+// ==========================================
+function toggleForm(id) {
+  const el = document.getElementById(id);
+  el.classList.toggle('open');
+}
+
+function addFuncionario() {
+  const nome = document.getElementById('new-func-nome').value.trim();
+  if (!nome) { showToast('Digite o nome!', true); return; }
+  showToast('Funcionário adicionado! (Supabase em breve)');
+  toggleForm('form-func');
+}
+
+function addServico() {
+  const nome = document.getElementById('new-serv-nome').value.trim();
+  if (!nome) { showToast('Digite o nome do serviço!', true); return; }
+  showToast('Serviço adicionado! (Supabase em breve)');
+  toggleForm('form-serv');
 }
