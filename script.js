@@ -37,7 +37,8 @@ function getHeaders() {
 
 async function api(path, method = 'GET', body = null) {
   const opts = { method, headers: getHeaders() };
-  if (method === 'POST')   opts.headers['Prefer'] = 'return=representation';
+  if (method === 'POST')  opts.headers['Prefer'] = 'return=representation';
+  if (method === 'PATCH') opts.headers['Prefer'] = 'return=minimal';
   if (method === 'DELETE') opts.headers['Prefer'] = 'return=minimal';
   if (body) opts.body = JSON.stringify(body);
   const r = await fetch(SUPA_URL + '/rest/v1/' + path, opts);
@@ -51,27 +52,20 @@ async function api(path, method = 'GET', body = null) {
 // ESTADO GLOBAL DO SISTEMA (MEMÓRIA TEMPORÁRIA)
 // Esses arrays guardam os dados carregados do banco
 // ======================================================
-let funcionarios = [];
-let servicos     = [];
-let atendimentos = [];
+let funcionarios = [], servicos = [], atendimentos = [], pneus = [], movimentacoes = [];
 
-// ======================================================
-// CARREGAMENTO DE DADOS DO BANCO (SUPABASE)
-// Busca funcionários, serviços e atendimentos do dia
-// ======================================================
 async function carregarDados() {
   try {
     const hoje = new Date().toISOString().split('T')[0];
-    [funcionarios, servicos, atendimentos] = await Promise.all([
-      api('funcionarios?ativo=eq.true&order=nome'),
+    [funcionarios, servicos, atendimentos, pneus, movimentacoes] = await Promise.all([
+      api('funcionarios?order=nome'),
       api('servicos?ativo=eq.true&order=nome'),
-      api('atendimentos?horario=gte.' + hoje + 'T00:00:00&order=horario.desc')
+      api('atendimentos?horario=gte.' + hoje + 'T00:00:00&order=horario.desc'),
+      api('pneus?ativo=eq.true&order=marca'),
+      api('pneus_movimentacoes?order=created_at.desc&limit=50')
     ]);
     setStatus(true);
-  } catch (e) {
-    setStatus(false);
-    console.error('Erro ao carregar dados:', e);
-  }
+  } catch (e) { setStatus(false); console.error(e); }
 }
 
 // ======================================================
@@ -123,7 +117,8 @@ let currentTab = 'painel';
 const pageTitles = {
   painel:    { title: 'Painel',    sub: 'Resumo do dia de hoje' },
   registrar: { title: 'Registrar', sub: 'Novo atendimento' },
-  gerenciar: { title: 'Gerenciar', sub: 'Funcionários e serviços' }
+  gerenciar: { title: 'Gerenciar', sub: 'Funcionários e serviços' },
+  pneus:     { title: 'Pneus',     sub: 'Estoque, compras e vendas' }
 };
 
 async function showTab(tab) {
@@ -136,8 +131,10 @@ async function showTab(tab) {
   await carregarDados();
   if (tab === 'painel')    { document.getElementById('main-content').innerHTML = renderPainel(); animateBars(); }
   if (tab === 'registrar') { document.getElementById('main-content').innerHTML = renderRegistrar(); preencherSelects(); }
-  if (tab === 'gerenciar') { document.getElementById('main-content').innerHTML = renderGerenciar(); preencherListas(); }
+  if (tab === 'gerenciar') { document.getElementById('main-content').innerHTML = renderGerenciar(); renderGerenciarContent(); }
+   if (tab === 'pneus')     { document.getElementById('main-content').innerHTML = await renderPneus(); }
 }
+
 
 // ======================================================
 // RENDERIZAÇÃO DO PAINEL PRINCIPAL (DASHBOARD)
@@ -412,64 +409,623 @@ async function registrar() {
 // TELA DE GERENCIAMENTO DO SISTEMA
 // Cadastro e remoção de funcionários e serviços
 // ======================================================
+// ======================================================
+// TELA DE GERENCIAMENTO — COM SUBNAVEGAÇÃO
+// ======================================================
+let gerenciarTab = 'funcionarios';
+
 function renderGerenciar() {
   return `
-  <div class="manage-grid">
-    <div class="card">
-      <div class="card-header">
-        <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-        <span class="card-title">Funcionários</span>
-      </div>
-      <div id="lista-funcionarios"></div>
-      <div class="add-form" id="form-func">
-        <div class="form-group"><label>Nome do funcionário</label><input id="new-func-nome" placeholder="Ex: Carlos"></div>
-        <div class="add-form-row">
-          <button class="btn-primary" onclick="addFuncionario()">Adicionar</button>
-          <button class="btn-secondary" onclick="toggleForm('form-func')">Cancelar</button>
-        </div>
-      </div>
-      <button class="btn-secondary" onclick="toggleForm('form-func')">+ Adicionar funcionário</button>
+  <div class="subnav">
+    <button class="subnav-btn ${gerenciarTab === 'funcionarios' ? 'active' : ''}" onclick="trocarGerenciar('funcionarios')">👷 Funcionários</button>
+    <button class="subnav-btn ${gerenciarTab === 'servicos'     ? 'active' : ''}" onclick="trocarGerenciar('servicos')">🔧 Serviços</button>
+    <button class="subnav-btn ${gerenciarTab === 'atendimentos' ? 'active' : ''}" onclick="trocarGerenciar('atendimentos')">📋 Atendimentos</button>
+    <button class="subnav-btn ${gerenciarTab === 'veiculos'     ? 'active' : ''}" onclick="trocarGerenciar('veiculos')">🚛 Veículos</button>
+  </div>
+  <div id="gerenciar-content"></div>`;
+}
+
+function trocarGerenciar(tab) {
+  gerenciarTab = tab;
+  document.querySelectorAll('.subnav-btn').forEach((b, i) => {
+    const tabs = ['funcionarios','servicos','atendimentos','veiculos'];
+    b.classList.toggle('active', tabs[i] === tab);
+  });
+  renderGerenciarContent();
+}
+
+function renderGerenciarContent() {
+  const c = document.getElementById('gerenciar-content');
+  if (!c) return;
+  if (gerenciarTab === 'funcionarios') c.innerHTML = renderFuncionarios();
+  if (gerenciarTab === 'servicos')     c.innerHTML = renderServicos();
+  if (gerenciarTab === 'atendimentos') c.innerHTML = renderAtendimentosGerenciar();
+  if (gerenciarTab === 'veiculos')     c.innerHTML = renderVeiculos();
+}
+
+// ======================================================
+// FUNCIONÁRIOS
+// ======================================================
+function renderFuncionarios() {
+  return `
+  <div class="card" style="max-width:600px">
+    <div class="card-header">
+      <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+      <span class="card-title">Funcionários</span>
     </div>
-    <div class="card">
-      <div class="card-header">
-        <svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
-        <span class="card-title">Serviços e preços</span>
+    ${funcionarios.length > 0 ? funcionarios.map(f => `
+    <div class="manage-row">
+      <div>
+        <div class="manage-name">${f.nome} ${!f.ativo ? '<span class="badge-inativo">inativo</span>' : ''}</div>
       </div>
-      <div id="lista-servicos"></div>
-      <div class="add-form" id="form-serv">
-        <div class="form-group"><label>Nome do serviço</label><input id="new-serv-nome" placeholder="Ex: Troca de Pneu"></div>
-        <div class="form-group"><label>Preço sugerido (opcional)</label><input id="new-serv-preco" type="number" step="0.01" placeholder="0,00"></div>
-        <div class="add-form-row">
-          <button class="btn-primary" onclick="addServico()">Adicionar</button>
-          <button class="btn-secondary" onclick="toggleForm('form-serv')">Cancelar</button>
-        </div>
+      <div class="action-btns">
+        <button class="btn-edit" onclick="editarFuncionario(${f.id}, '${f.nome}')">Editar</button>
+        <button class="btn-deactivate" onclick="toggleFuncionario(${f.id}, ${f.ativo})">${f.ativo ? 'Desativar' : 'Ativar'}</button>
+        <button class="btn-danger" onclick="deleteFuncionario(${f.id})">Remover</button>
       </div>
-      <button class="btn-secondary" onclick="toggleForm('form-serv')">+ Adicionar serviço</button>
+    </div>`).join('') : '<div style="color:var(--text-hint);font-size:13px;padding:12px 0">Nenhum funcionário cadastrado</div>'}
+    <div class="add-form" id="form-func">
+      <div class="form-group"><label>Nome do funcionário</label><input id="new-func-nome" placeholder="Ex: Carlos"></div>
+      <div class="add-form-row">
+        <button class="btn-primary" onclick="addFuncionario()">Adicionar</button>
+        <button class="btn-secondary" onclick="toggleForm('form-func')">Cancelar</button>
+      </div>
     </div>
+    <button class="btn-secondary" onclick="toggleForm('form-func')">+ Adicionar funcionário</button>
   </div>`;
+}
+
+// ======================================================
+// SERVIÇOS
+// ======================================================
+function renderServicos() {
+  return `
+  <div class="card" style="max-width:600px">
+    <div class="card-header">
+      <svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+      <span class="card-title">Serviços e preços</span>
+    </div>
+    ${servicos.length > 0 ? servicos.map(s => `
+    <div class="manage-row">
+      <div>
+        <div class="manage-name">${s.nome}</div>
+        <div class="manage-sub">${s.preco_sugerido ? brl(s.preco_sugerido) : 'Preço livre'}</div>
+      </div>
+      <div class="action-btns">
+        <button class="btn-edit" onclick="editarServico(${s.id}, '${s.nome}', '${s.preco_sugerido || ''}')">Editar</button>
+        <button class="btn-danger" onclick="deleteServico(${s.id})">Remover</button>
+      </div>
+    </div>`).join('') : '<div style="color:var(--text-hint);font-size:13px;padding:12px 0">Nenhum serviço cadastrado</div>'}
+    <div class="add-form" id="form-serv">
+      <div class="form-group"><label>Nome do serviço</label><input id="new-serv-nome" placeholder="Ex: Troca de Pneu"></div>
+      <div class="form-group"><label>Preço sugerido (opcional)</label><input id="new-serv-preco" type="number" step="0.01" placeholder="0,00"></div>
+      <div class="add-form-row">
+        <button class="btn-primary" onclick="addServico()">Adicionar</button>
+        <button class="btn-secondary" onclick="toggleForm('form-serv')">Cancelar</button>
+      </div>
+    </div>
+    <button class="btn-secondary" onclick="toggleForm('form-serv')">+ Adicionar serviço</button>
+  </div>`;
+}
+
+// ======================================================
+// PNEUS — RENDER PRINCIPAL
+// ======================================================
+let pneusTab = 'estoque';
+
+async function renderPneus() {
+  return `
+  <div class="pneus-subnav">
+    <button class="subnav-btn ${pneusTab === 'estoque' ? 'active' : ''}"     onclick="trocarPneus('estoque')">📦 Estoque</button>
+    <button class="subnav-btn ${pneusTab === 'movimentacoes' ? 'active' : ''}" onclick="trocarPneus('movimentacoes')">📋 Movimentações</button>
+    <button class="subnav-btn ${pneusTab === 'cadastrar' ? 'active' : ''}"   onclick="trocarPneus('cadastrar')">➕ Cadastrar pneu</button>
+  </div>
+  <div id="pneus-content">
+    ${renderPneusContent()}
+  </div>`;
+}
+
+function trocarPneus(tab) {
+  pneusTab = tab;
+  document.querySelectorAll('.pneus-subnav .subnav-btn').forEach((b, i) => {
+    const tabs = ['estoque','movimentacoes','cadastrar'];
+    b.classList.toggle('active', tabs[i] === tab);
+  });
+  document.getElementById('pneus-content').innerHTML = renderPneusContent();
+}
+
+function renderPneusContent() {
+  if (pneusTab === 'estoque')       return renderEstoque();
+  if (pneusTab === 'movimentacoes') return renderMovimentacoes();
+  if (pneusTab === 'cadastrar')     return renderCadastrarPneu();
+  return '';
+}
+
+// ======================================================
+// ESTOQUE
+// ======================================================
+function renderEstoque() {
+  if (pneus.length === 0) return `
+    <div class="empty">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg>
+      Nenhum pneu cadastrado ainda
+    </div>`;
+
+  return `
+  <div class="pneus-grid">
+    ${pneus.map(p => `
+    <div class="pneu-card">
+      <div class="pneu-card-top">
+        <div>
+          <div class="pneu-marca">${p.marca}</div>
+          <div class="pneu-medida">${p.medida}</div>
+        </div>
+        <div class="pneu-estoque">
+          <div class="pneu-estoque-num ${p.estoque <= 2 ? 'baixo' : 'ok'}">${p.estoque}</div>
+          <div class="pneu-estoque-label">em estoque</div>
+        </div>
+      </div>
+      <div class="pneu-precos">
+        <div class="pneu-preco-item">
+          <div class="pneu-preco-label">Custo</div>
+          <div class="pneu-preco-val">${brl(p.custo)}</div>
+        </div>
+        <div class="pneu-preco-item">
+          <div class="pneu-preco-label">Venda</div>
+          <div class="pneu-preco-val">${brl(p.preco_venda)}</div>
+        </div>
+        <div class="pneu-preco-item">
+          <div class="pneu-preco-label">Margem</div>
+          <div class="pneu-preco-val" style="color:var(--green)">
+            ${p.custo > 0 ? Math.round((p.preco_venda - p.custo) / p.custo * 100) + '%' : '—'}
+          </div>
+        </div>
+      </div>
+      <div class="pneu-actions">
+        <button class="btn-compra" onclick="abrirCompra(${p.id})">+ Compra</button>
+        <button class="btn-venda"  onclick="abrirVenda(${p.id})">− Venda</button>
+        <button class="btn-edit"   onclick="editarPneu(${p.id})">✏️</button>
+        <button class="btn-danger" onclick="deletePneu(${p.id})">🗑️</button>
+      </div>
+    </div>`).join('')}
+  </div>`;
+}
+
+// ======================================================
+// MOVIMENTAÇÕES
+// ======================================================
+function renderMovimentacoes() {
+  return `
+  <div class="card">
+    <div class="card-header">
+      <svg viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+      <span class="card-title">Últimas movimentações</span>
+    </div>
+    ${movimentacoes.length > 0 ? movimentacoes.map(m => {
+      const pneu = pneus.find(p => p.id === m.pneu_id);
+      return `
+      <div class="list-item">
+        <div class="list-item-left">
+          <div class="rank ${m.tipo === 'venda' ? 'gold' : ''}" style="${m.tipo === 'compra' ? 'background:var(--blue-light);color:var(--blue)' : ''}">
+            ${m.tipo === 'compra' ? '▲' : '▼'}
+          </div>
+          <div>
+            <div class="list-name">${pneu ? pneu.marca + ' ' + pneu.medida : 'Pneu'} <span class="tag ${m.tipo === 'venda' ? 'green' : 'blue'}">${m.tipo}</span></div>
+            <div class="list-sub">${m.quantidade} un · ${m.funcionario_nome || '—'} ${m.observacao ? '· ' + m.observacao : ''}</div>
+          </div>
+        </div>
+        <div>
+          <div class="list-val">${brl(m.total)}</div>
+          <div class="list-val-sub">${new Date(m.created_at).toLocaleString('pt-BR', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' })}</div>
+        </div>
+      </div>`;
+    }).join('') : '<div class="empty"><svg viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg>Nenhuma movimentação ainda</div>'}
+  </div>`;
+}
+
+// ======================================================
+// CADASTRAR PNEU
+// ======================================================
+function renderCadastrarPneu() {
+  return `
+  <div class="card" style="max-width:500px">
+    <div class="card-header">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg>
+      <span class="card-title">Cadastrar novo pneu</span>
+    </div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Marca</label>
+        <input id="np-marca" placeholder="Ex: Bridgestone">
+      </div>
+      <div class="form-group">
+        <label>Medida</label>
+        <input id="np-medida" placeholder="Ex: 295/80R22.5">
+      </div>
+      <div class="form-group">
+        <label>Custo de compra (R$)</label>
+        <input id="np-custo" type="number" step="0.01" placeholder="0,00">
+      </div>
+      <div class="form-group">
+        <label>Preço de venda (R$)</label>
+        <input id="np-venda" type="number" step="0.01" placeholder="0,00">
+      </div>
+      <div class="form-group">
+        <label>Estoque inicial</label>
+        <input id="np-estoque" type="number" min="0" placeholder="0">
+      </div>
+    </div>
+    <hr class="form-divider">
+    <button class="btn-primary" onclick="cadastrarPneu()">Cadastrar pneu</button>
+  </div>`;
+}
+
+async function cadastrarPneu() {
+  const marca   = document.getElementById('np-marca').value.trim();
+  const medida  = document.getElementById('np-medida').value.trim();
+  const custo   = parseFloat(document.getElementById('np-custo').value || 0);
+  const venda   = parseFloat(document.getElementById('np-venda').value || 0);
+  const estoque = parseInt(document.getElementById('np-estoque').value || 0);
+  if (!marca || !medida) { showToast('Preencha marca e medida!', true); return; }
+  try {
+    await api('pneus', 'POST', { marca, medida, custo, preco_venda: venda, estoque });
+    showToast('Pneu cadastrado!');
+    await carregarDados();
+    trocarPneus('estoque');
+  } catch (e) { showToast('Erro ao cadastrar!', true); }
+}
+
+// ======================================================
+// COMPRA DE PNEU
+// ======================================================
+function abrirCompra(id) {
+  const p = pneus.find(x => x.id === id);
+  if (!p) return;
+  abrirModal(`Registrar compra — ${p.marca} ${p.medida}`, `
+    <div class="form-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="form-group">
+        <label>Quantidade</label>
+        <input id="mov-qtd" type="number" min="1" value="1">
+      </div>
+      <div class="form-group">
+        <label>Custo unitário (R$)</label>
+        <input id="mov-valor" type="number" step="0.01" value="${p.custo}">
+      </div>
+      <div class="form-group">
+        <label>Observação (opcional)</label>
+        <input id="mov-obs" placeholder="Ex: Fornecedor X">
+      </div>
+    </div>`, async () => {
+    const qtd   = parseInt(document.getElementById('mov-qtd').value);
+    const valor = parseFloat(document.getElementById('mov-valor').value);
+    const obs   = document.getElementById('mov-obs').value.trim();
+    if (!qtd || !valor) { showToast('Preencha os campos!', true); return; }
+    try {
+      await api('pneus_movimentacoes', 'POST', {
+        pneu_id: id, tipo: 'compra', quantidade: qtd,
+        valor_unit: valor, total: qtd * valor, observacao: obs
+      });
+      await api('pneus?id=eq.' + id, 'PATCH', { estoque: p.estoque + qtd, custo: valor });
+      showToast('Compra registrada!');
+      document.getElementById('modal-overlay').classList.remove('open');
+      await carregarDados();
+      trocarPneus('estoque');
+    } catch (e) { showToast('Erro!', true); }
+  });
+}
+
+// ======================================================
+// VENDA DE PNEU
+// ======================================================
+function abrirVenda(id) {
+  const p = pneus.find(x => x.id === id);
+  if (!p) return;
+  abrirModal(`Registrar venda — ${p.marca} ${p.medida}`, `
+    <div class="form-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="form-group">
+        <label>Quantidade (estoque: ${p.estoque})</label>
+        <input id="mov-qtd" type="number" min="1" max="${p.estoque}" value="1">
+      </div>
+      <div class="form-group">
+        <label>Preço unitário (R$)</label>
+        <input id="mov-valor" type="number" step="0.01" value="${p.preco_venda}">
+      </div>
+      <div class="form-group">
+        <label>Funcionário</label>
+        <select id="mov-func">
+          <option value="">Selecione...</option>
+          ${funcionarios.filter(f => f.ativo).map(f => `<option value="${f.nome}">${f.nome}</option>`).join('')}
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Observação (opcional)</label>
+        <input id="mov-obs" placeholder="Ex: Cliente João">
+      </div>
+    </div>`, async () => {
+    const qtd   = parseInt(document.getElementById('mov-qtd').value);
+    const valor = parseFloat(document.getElementById('mov-valor').value);
+    const func  = document.getElementById('mov-func').value;
+    const obs   = document.getElementById('mov-obs').value.trim();
+    if (!qtd || !valor) { showToast('Preencha os campos!', true); return; }
+    if (qtd > p.estoque) { showToast('Quantidade maior que o estoque!', true); return; }
+    try {
+      await api('pneus_movimentacoes', 'POST', {
+        pneu_id: id, tipo: 'venda', quantidade: qtd,
+        valor_unit: valor, total: qtd * valor,
+        funcionario_nome: func, observacao: obs
+      });
+      await api('pneus?id=eq.' + id, 'PATCH', { estoque: p.estoque - qtd });
+      showToast('Venda registrada!');
+      document.getElementById('modal-overlay').classList.remove('open');
+      await carregarDados();
+      trocarPneus('estoque');
+    } catch (e) { showToast('Erro!', true); }
+  });
+}
+
+// ======================================================
+// EDITAR PNEU
+// ======================================================
+function editarPneu(id) {
+  const p = pneus.find(x => x.id === id);
+  if (!p) return;
+  abrirModal(`Editar — ${p.marca} ${p.medida}`, `
+    <div class="form-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="form-group">
+        <label>Marca</label>
+        <input id="ep-marca" value="${p.marca}">
+      </div>
+      <div class="form-group">
+        <label>Medida</label>
+        <input id="ep-medida" value="${p.medida}">
+      </div>
+      <div class="form-group">
+        <label>Custo (R$)</label>
+        <input id="ep-custo" type="number" step="0.01" value="${p.custo}">
+      </div>
+      <div class="form-group">
+        <label>Preço de venda (R$)</label>
+        <input id="ep-venda" type="number" step="0.01" value="${p.preco_venda}">
+      </div>
+      <div class="form-group">
+        <label>Estoque atual</label>
+        <input id="ep-estoque" type="number" min="0" value="${p.estoque}">
+      </div>
+    </div>`, async () => {
+    const marca   = document.getElementById('ep-marca').value.trim();
+    const medida  = document.getElementById('ep-medida').value.trim();
+    const custo   = parseFloat(document.getElementById('ep-custo').value);
+    const venda   = parseFloat(document.getElementById('ep-venda').value);
+    const estoque = parseInt(document.getElementById('ep-estoque').value);
+    if (!marca || !medida) { showToast('Preencha marca e medida!', true); return; }
+    try {
+      await api('pneus?id=eq.' + id, 'PATCH', { marca, medida, custo, preco_venda: venda, estoque });
+      showToast('Pneu atualizado!');
+      document.getElementById('modal-overlay').classList.remove('open');
+      await carregarDados();
+      trocarPneus('estoque');
+    } catch (e) { showToast('Erro!', true); }
+  });
+}
+
+// ======================================================
+// DELETAR PNEU
+// ======================================================
+async function deletePneu(id) {
+  if (!confirm('Remover este pneu do estoque?')) return;
+  try {
+    await api('pneus?id=eq.' + id, 'PATCH', { ativo: false });
+    showToast('Pneu removido!');
+    await carregarDados();
+    trocarPneus('estoque');
+  } catch (e) { showToast('Erro!', true); }
+}
+
+// ======================================================
+// ATENDIMENTOS — EDITAR E DELETAR
+// ======================================================
+function renderAtendimentosGerenciar() {
+  // Busca todos atendimentos (não só hoje)
+  return `
+  <div class="card">
+    <div class="card-header">
+      <svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+      <span class="card-title">Atendimentos de hoje</span>
+    </div>
+    ${atendimentos.length > 0 ? atendimentos.map(a => `
+    <div class="list-item">
+      <div class="list-item-left">
+        <div>
+          <div class="list-name">${a.placa || '—'} <span class="tag ${a.tipo_veiculo === 'Carreta' ? 'blue' : 'green'}">${a.tipo_veiculo || 'Caminhão'}</span></div>
+          <div class="list-sub">${a.servico} · ${a.funcionario_nome || '—'} · ${brl(a.valor)}</div>
+        </div>
+      </div>
+      <div class="action-btns">
+        <button class="btn-edit" onclick="editarAtendimento(${a.id})">Editar</button>
+        <button class="btn-danger" onclick="deleteAtendimento(${a.id})">Deletar</button>
+      </div>
+    </div>`).join('') : '<div class="empty"><svg viewBox="0 0 24 24"><path d="M1 3h15l2 7H3L1 3z"/><circle cx="7" cy="17" r="2"/><circle cx="15" cy="17" r="2"/></svg>Nenhum atendimento hoje</div>'}
+  </div>`;
+}
+
+// ======================================================
+// VEÍCULOS — HISTÓRICO POR PLACA
+// ======================================================
+function renderVeiculos() {
+  const porPlaca = {};
+  atendimentos.forEach(a => {
+    const p = a.placa || 'SEM PLACA';
+    if (!porPlaca[p]) porPlaca[p] = { placa: p, tipo: a.tipo_veiculo, qtd: 0, total: 0, atendimentos: [] };
+    porPlaca[p].qtd++;
+    porPlaca[p].total += parseFloat(a.valor || 0);
+    porPlaca[p].atendimentos.push(a);
+  });
+  const veiculos = Object.values(porPlaca).sort((a, b) => b.qtd - a.qtd);
+
+  return `
+  <div class="card">
+    <div class="card-header">
+      <svg viewBox="0 0 24 24"><path d="M1 3h15l2 7H3L1 3z"/><circle cx="7" cy="17" r="2"/><circle cx="15" cy="17" r="2"/></svg>
+      <span class="card-title">Veículos atendidos hoje</span>
+    </div>
+    ${veiculos.length > 0 ? veiculos.map(v => `
+    <div class="list-item">
+      <div class="list-item-left">
+        <div>
+          <div class="list-name">${v.placa} <span class="tag ${v.tipo === 'Carreta' ? 'blue' : 'green'}">${v.tipo || 'Caminhão'}</span></div>
+          <div class="list-sub">${v.qtd} serviço${v.qtd !== 1 ? 's' : ''} · ${brl(v.total)}</div>
+        </div>
+      </div>
+    </div>`).join('') : '<div class="empty"><svg viewBox="0 0 24 24"><path d="M1 3h15l2 7H3L1 3z"/><circle cx="7" cy="17" r="2"/><circle cx="15" cy="17" r="2"/></svg>Nenhum veículo hoje</div>'}
+  </div>`;
+}
+
+// ======================================================
+// MODAL
+// ======================================================
+function abrirModal(titulo, body, onSave) {
+  document.getElementById('modal-title').textContent = titulo;
+  document.getElementById('modal-body').innerHTML = body;
+  document.getElementById('modal-save').onclick = onSave;
+  document.getElementById('modal-overlay').classList.add('open');
+}
+
+function fecharModal(e) {
+  if (e && e.target !== document.getElementById('modal-overlay')) return;
+  document.getElementById('modal-overlay').classList.remove('open');
+}
+
+// ======================================================
+// EDITAR FUNCIONÁRIO
+// ======================================================
+function editarFuncionario(id, nome) {
+  abrirModal('Editar funcionário', `
+    <div class="form-group">
+      <label>Nome</label>
+      <input id="edit-func-nome" value="${nome}">
+    </div>`, async () => {
+    const novoNome = document.getElementById('edit-func-nome').value.trim();
+    if (!novoNome) { showToast('Digite o nome!', true); return; }
+    try {
+      await api('funcionarios?id=eq.' + id, 'PATCH', { nome: novoNome });
+      showToast('Funcionário atualizado!');
+      document.getElementById('modal-overlay').classList.remove('open');
+      await showTab('gerenciar');
+      trocarGerenciar('funcionarios');
+    } catch (e) { showToast('Erro ao atualizar!', true); }
+  });
+}
+
+// ======================================================
+// ATIVAR / DESATIVAR FUNCIONÁRIO
+// ======================================================
+async function toggleFuncionario(id, ativo) {
+  const acao = ativo ? 'desativar' : 'ativar';
+  if (!confirm(`Deseja ${acao} este funcionário?`)) return;
+  try {
+    await api('funcionarios?id=eq.' + id, 'PATCH', { ativo: !ativo });
+    showToast(`Funcionário ${ativo ? 'desativado' : 'ativado'}!`);
+    await showTab('gerenciar');
+    trocarGerenciar('funcionarios');
+  } catch (e) { showToast('Erro!', true); }
+}
+
+// ======================================================
+// EDITAR SERVIÇO
+// ======================================================
+function editarServico(id, nome, preco) {
+  abrirModal('Editar serviço', `
+    <div class="form-group" style="margin-bottom:12px">
+      <label>Nome do serviço</label>
+      <input id="edit-serv-nome" value="${nome}">
+    </div>
+    <div class="form-group">
+      <label>Preço sugerido (opcional)</label>
+      <input id="edit-serv-preco" type="number" step="0.01" value="${preco}">
+    </div>`, async () => {
+    const novoNome  = document.getElementById('edit-serv-nome').value.trim();
+    const novoPreco = document.getElementById('edit-serv-preco').value;
+    if (!novoNome) { showToast('Digite o nome!', true); return; }
+    try {
+      await api('servicos?id=eq.' + id, 'PATCH', { nome: novoNome, preco_sugerido: novoPreco ? parseFloat(novoPreco) : null });
+      showToast('Serviço atualizado!');
+      document.getElementById('modal-overlay').classList.remove('open');
+      await showTab('gerenciar');
+      trocarGerenciar('servicos');
+    } catch (e) { showToast('Erro ao atualizar!', true); }
+  });
+}
+
+// ======================================================
+// EDITAR ATENDIMENTO
+// ======================================================
+function editarAtendimento(id) {
+  const a = atendimentos.find(x => x.id === id);
+  if (!a) return;
+  abrirModal('Editar atendimento', `
+    <div class="form-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="form-group">
+        <label>Placa</label>
+        <input id="edit-placa" value="${a.placa || ''}" style="text-transform:uppercase">
+      </div>
+      <div class="form-group">
+        <label>Tipo</label>
+        <select id="edit-tipo">
+          <option value="Caminhão" ${a.tipo_veiculo === 'Caminhão' ? 'selected' : ''}>🚛 Caminhão</option>
+          <option value="Carreta"  ${a.tipo_veiculo === 'Carreta'  ? 'selected' : ''}>🚚 Carreta</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Serviço</label>
+        <input id="edit-servico" value="${a.servico || ''}">
+      </div>
+      <div class="form-group">
+        <label>Valor (R$)</label>
+        <input id="edit-valor" type="number" step="0.01" value="${a.valor || ''}">
+      </div>
+      <div class="form-group">
+        <label>Funcionário</label>
+        <select id="edit-func">
+          ${funcionarios.map(f => `<option value="${f.id}" data-nome="${f.nome}" ${f.id === a.funcionario_id ? 'selected' : ''}>${f.nome}</option>`).join('')}
+        </select>
+      </div>
+    </div>`, async () => {
+    const placa    = document.getElementById('edit-placa').value.trim().toUpperCase();
+    const tipo     = document.getElementById('edit-tipo').value;
+    const servico  = document.getElementById('edit-servico').value.trim();
+    const valor    = parseFloat(document.getElementById('edit-valor').value);
+    const funcSel  = document.getElementById('edit-func');
+    const funcId   = parseInt(funcSel.value);
+    const funcNome = funcSel.selectedOptions[0]?.dataset.nome || '';
+    if (!servico || !valor) { showToast('Preencha todos os campos!', true); return; }
+    try {
+      await api('atendimentos?id=eq.' + id, 'PATCH', { placa, tipo_veiculo: tipo, servico, valor, funcionario_id: funcId, funcionario_nome: funcNome });
+      showToast('Atendimento atualizado!');
+      document.getElementById('modal-overlay').classList.remove('open');
+      await showTab('gerenciar');
+      trocarGerenciar('atendimentos');
+    } catch (e) { showToast('Erro ao atualizar!', true); }
+  });
+}
+
+// ======================================================
+// DELETAR ATENDIMENTO
+// ======================================================
+async function deleteAtendimento(id) {
+  if (!confirm('Deletar este atendimento?')) return;
+  try {
+    await api('atendimentos?id=eq.' + id, 'DELETE');
+    showToast('Atendimento removido!');
+    await showTab('gerenciar');
+    trocarGerenciar('atendimentos');
+  } catch (e) { showToast('Erro ao remover!', true); }
 }
 
 // ======================================================
 // PREENCHIMENTO DAS LISTAS DE FUNCIONÁRIOS E SERVIÇOS
 // ======================================================
 function preencherListas() {
-  const listaFunc = document.getElementById('lista-funcionarios');
-  const listaServ = document.getElementById('lista-servicos');
-  if (!listaFunc || !listaServ) return;
-  listaFunc.innerHTML = funcionarios.length > 0
-    ? funcionarios.map(f => `
-      <div class="manage-row">
-        <div><div class="manage-name">${f.nome}</div></div>
-        <button class="btn-danger" onclick="deleteFuncionario(${f.id})">Remover</button>
-      </div>`).join('')
-    : '<div style="color:var(--text-hint);font-size:13px;padding:12px 0">Nenhum funcionário cadastrado</div>';
-  listaServ.innerHTML = servicos.length > 0
-    ? servicos.map(s => `
-      <div class="manage-row">
-        <div><div class="manage-name">${s.nome}</div><div class="manage-sub">${s.preco_sugerido ? brl(s.preco_sugerido) : 'Preço livre'}</div></div>
-        <button class="btn-danger" onclick="deleteServico(${s.id})">Remover</button>
-      </div>`).join('')
-    : '<div style="color:var(--text-hint);font-size:13px;padding:12px 0">Nenhum serviço cadastrado</div>';
+  renderGerenciarContent();
 }
 
 // ======================================================

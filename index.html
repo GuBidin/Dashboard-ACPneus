@@ -35,6 +35,10 @@
         <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
         Gerenciar
       </button>
+      <button class="nav-btn" id="tab-pneus" onclick="showTab('pneus')">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg>
+        Pneus
+      </button>
     </nav>
 
   <div class="sidebar-footer">
@@ -68,6 +72,18 @@
       <p style="color: var(--text-muted)">Carregando...</p>
     </div>
   </main>
+
+  <!-- MODAL DE EDIÇÃO -->
+  <div class="modal-overlay" id="modal-overlay" onclick="fecharModal(event)">
+    <div class="modal" id="modal">
+      <div class="modal-title" id="modal-title">Editar</div>
+      <div id="modal-body"></div>
+      <div class="modal-footer">
+        <button class="btn-secondary" style="width:auto;margin-top:0" onclick="fecharModal()">Cancelar</button>
+        <button class="btn-primary" id="modal-save" style="padding:10px 24px">Salvar</button>
+      </div>
+    </div>
+  </div>
 
 </div>
 

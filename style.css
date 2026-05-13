@@ -947,3 +947,259 @@ body {
   stroke-linecap: round;
   stroke-linejoin: round;
 }
+
+/* ==========================================
+   SUBNAVEGAÇÃO DO GERENCIAR
+========================================== */
+.subnav {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.subnav-btn {
+  padding: 7px 14px;
+  border-radius: var(--radius-sm);
+  border: 0.5px solid var(--border-md);
+  background: var(--surface);
+  color: var(--text-muted);
+  font-size: 12px;
+  font-family: 'Inter', sans-serif;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.subnav-btn:hover { background: var(--bg); color: var(--text); }
+
+.subnav-btn.active {
+  background: var(--text);
+  color: white;
+  border-color: var(--text);
+}
+
+/* ==========================================
+   BOTÕES DE AÇÃO NAS LINHAS
+========================================== */
+.action-btns {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.btn-edit {
+  padding: 6px 12px;
+  background: none;
+  color: var(--blue);
+  border: 0.5px solid var(--blue);
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-family: 'Inter', sans-serif;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.btn-edit:hover { background: rgba(55, 138, 221, 0.06); }
+
+.btn-deactivate {
+  padding: 6px 12px;
+  background: none;
+  color: var(--amber);
+  border: 0.5px solid var(--amber);
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-family: 'Inter', sans-serif;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.btn-deactivate:hover { background: rgba(186, 117, 23, 0.06); }
+
+/* ==========================================
+   MODAL DE EDIÇÃO
+========================================== */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s;
+}
+
+.modal-overlay.open {
+  opacity: 1;
+  pointer-events: all;
+}
+
+.modal {
+  background: var(--surface);
+  border-radius: var(--radius);
+  border: 0.5px solid var(--border);
+  padding: 28px;
+  width: 100%;
+  max-width: 480px;
+  transform: translateY(16px);
+  transition: transform 0.2s;
+}
+
+.modal-overlay.open .modal { transform: translateY(0); }
+
+.modal-title {
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 16px;
+  margin-bottom: 20px;
+  padding-bottom: 14px;
+  border-bottom: 0.5px solid var(--border);
+}
+
+.modal-footer {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 0.5px solid var(--border);
+}
+
+.badge-inativo {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 500;
+  background: rgba(186,117,23,0.1);
+  color: var(--amber);
+  margin-left: 6px;
+}
+/* ==========================================
+   PNEUS — CARDS DE ESTOQUE
+========================================== */
+.pneus-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.pneu-card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  border: 0.5px solid var(--border);
+  padding: 18px;
+  transition: border-color 0.2s;
+}
+
+.pneu-card:hover { border-color: var(--border-md); }
+
+.pneu-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.pneu-marca {
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 15px;
+}
+
+.pneu-medida {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.pneu-estoque {
+  text-align: right;
+}
+
+.pneu-estoque-num {
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 24px;
+  line-height: 1;
+}
+
+.pneu-estoque-num.baixo { color: var(--coral); }
+.pneu-estoque-num.ok    { color: var(--green); }
+
+.pneu-estoque-label {
+  font-size: 10px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.pneu-precos {
+  display: flex;
+  gap: 12px;
+  padding-top: 12px;
+  border-top: 0.5px solid var(--border);
+  margin-bottom: 12px;
+}
+
+.pneu-preco-item { flex: 1; }
+
+.pneu-preco-label {
+  font-size: 10px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 3px;
+}
+
+.pneu-preco-val {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.pneu-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.btn-compra {
+  flex: 1;
+  padding: 7px;
+  background: var(--blue-light);
+  color: var(--blue);
+  border: 0.5px solid var(--blue);
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-family: 'Inter', sans-serif;
+  cursor: pointer;
+  transition: background 0.15s;
+  font-weight: 500;
+}
+
+.btn-compra:hover { background: #d0e8fa; }
+
+.btn-venda {
+  flex: 1;
+  padding: 7px;
+  background: var(--green-light);
+  color: var(--green-dark);
+  border: 0.5px solid var(--green);
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-family: 'Inter', sans-serif;
+  cursor: pointer;
+  transition: background 0.15s;
+  font-weight: 500;
+}
+
+.btn-venda:hover { background: #d4ecc4; }
+
+/* SUBNAV PNEUS */
+.pneus-subnav {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 20px;
+}
