@@ -1203,3 +1203,75 @@ body {
   gap: 6px;
   margin-bottom: 20px;
 }
+/* ==========================================
+   CUSTOS
+========================================== */
+.custos-resumo-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.custo-categoria-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 500;
+  background: var(--bg);
+  color: var(--text-muted);
+}
+
+.custo-categoria-badge.energia  { background: var(--amber-light); color: var(--amber); }
+.custo-categoria-badge.agua     { background: var(--blue-light);  color: var(--blue); }
+.custo-categoria-badge.internet { background: var(--green-light); color: var(--green-dark); }
+.custo-categoria-badge.salario  { background: var(--coral-light); color: var(--coral); }
+.custo-categoria-badge.compra   { background: var(--blue-light);  color: var(--blue); }
+.custo-categoria-badge.outro    { background: var(--bg);          color: var(--text-muted); }
+
+.margem-card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  border: 0.5px solid var(--border);
+  padding: 24px;
+  margin-bottom: 16px;
+}
+
+.margem-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 0.5px solid var(--border);
+  font-size: 14px;
+}
+
+.margem-row:last-child { border-bottom: none; }
+
+.margem-row.total {
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 16px;
+  margin-top: 8px;
+  padding-top: 14px;
+  border-top: 2px solid var(--border);
+  border-bottom: none;
+}
+
+.margem-positivo { color: var(--green); }
+.margem-negativo { color: var(--coral); }
+
+.fornecedor-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.fornecedor-badge.nacional  { background: var(--green-light); color: var(--green-dark); }
+.fornecedor-badge.importado { background: var(--blue-light);  color: var(--blue); }
+.fornecedor-badge.banda     { background: var(--amber-light); color: var(--amber); }
