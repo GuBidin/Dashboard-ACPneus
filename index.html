@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AC Pneus — Painel do Dono</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;700&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="app">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-box">AC</div>
+      <div>
+        <div class="logo-title">AC Pneus</div>
+        <div class="logo-sub">Painel do Dono</div>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <button class="nav-btn active" id="tab-painel" onclick="showTab('painel')">
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        Painel
+      </button>
+      <button class="nav-btn" id="tab-registrar" onclick="showTab('registrar')">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+        Registrar
+      </button>
+      <button class="nav-btn" id="tab-gerenciar" onclick="showTab('gerenciar')">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
+        Gerenciar
+      </button>
+      <button class="nav-btn" id="tab-pneus" onclick="showTab('pneus')">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg>
+        Pneus
+      </button>
+      <button class="nav-btn" id="tab-custos" onclick="showTab('custos')">
+        <svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        Custos
+      </button>
+    </nav>
+
+  <div class="sidebar-footer">
+      <div class="status-badge">
+        <div class="status-dot" id="statusDot"></div>
+        <span id="statusTxt">conectando</span>
+      </div>
+      <div class="sidebar-date" id="headerDate"></div>
+      <div class="sidebar-user">
+        <div class="user-avatar" id="user-avatar">?</div>
+        <div class="user-info">
+          <div class="user-name" id="user-name">—</div>
+          <div class="user-role">Administrador</div>
+        </div>
+        <button class="btn-logout" onclick="sair()" title="Sair">
+          <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- CONTEÚDO PRINCIPAL -->
+  <main class="main">
+    <div class="main-header">
+      <div>
+        <h1 class="main-title" id="pageTitle">Painel</h1>
+        <p class="main-sub" id="pageSub">Resumo do dia de hoje</p>
+      </div>
+    </div>
+    <div class="main-content" id="main-content">
+      <p style="color: var(--text-muted)">Carregando...</p>
+    </div>
+  </main>
+
+  <!-- MODAL DE EDIÇÃO -->
+  <div class="modal-overlay" id="modal-overlay" onclick="fecharModal(event)">
+    <div class="modal" id="modal">
+      <div class="modal-title" id="modal-title">Editar</div>
+      <div id="modal-body"></div>
+      <div class="modal-footer">
+        <button class="btn-secondary" style="width:auto;margin-top:0" onclick="fecharModal()">Cancelar</button>
+        <button class="btn-primary" id="modal-save" style="padding:10px 24px">Salvar</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script src="script.js"></script>
+</body>
+</html>
