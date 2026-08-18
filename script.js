@@ -1280,7 +1280,7 @@ function renderCustosFixos() {
                     'Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'][mesAtual - 1];
   const total    = custosFixos.reduce((s, c) => s + parseFloat(c.valor || 0), 0);
 
-  const categorias = ['energia','agua','internet','salario','recapagem','carcaca','sucata','banda','outro'];
+  const categorias = ['Energia','Água','Internet','Salário','Recapagem','Carcaca','Sucata','Banda','Outro'];
 
   return `
   <div class="card" style="max-width:700px">
