@@ -1,5 +1,5 @@
 // ======================================================
-// PAINEL.JS \xe2\x80\x94 Dashboard principal, gr\xc3\xa1ficos e ranking
+// PAINEL.JS — Dashboard principal, gráficos e ranking
 // ======================================================
 
 // ======================================================
@@ -7,8 +7,17 @@
 // Cálculos de métricas, totais, ranking e horários
 // ======================================================
 function renderPainel() {
+  const hojeStr = new Date().toISOString().split('T')[0];
   const total = atendimentos.length;
-  const fat   = atendimentos.reduce((s, a) => s + parseFloat(a.valor || 0), 0);
+
+  // Faturamento de hoje = serviços (atendimentos) + vendas de pneus feitas hoje.
+  // Antes esse cálculo só somava atendimentos, então uma venda de pneu nunca
+  // aparecia no faturamento do Painel.
+  const fatServicos = atendimentos.reduce((s, a) => s + parseFloat(a.valor || 0), 0);
+  const fatPneus = movimentacoes
+    .filter(m => m.tipo === 'venda' && m.created_at && m.created_at.split('T')[0] === hojeStr)
+    .reduce((s, m) => s + parseFloat(m.total || 0), 0);
+  const fat = fatServicos + fatPneus;
   const porFunc = {};
   atendimentos.forEach(a => {
     const n = a.funcionario_nome || 'N/A';
@@ -171,4 +180,3 @@ function renderRankingEAtendimentos() {
     </div>
   </div>`;
 }
-

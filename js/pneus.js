@@ -1,5 +1,5 @@
 // ======================================================
-// PNEUS.JS \xe2\x80\x94 Estoque, movimenta\xc3\xa7\xc3\xb5es, compra e venda de pneus
+// PNEUS.JS — Estoque, movimentações, compra e venda de pneus
 // ======================================================
 
 // ======================================================
@@ -377,4 +377,3 @@ async function deletePneu(id) {
     trocarPneus('estoque');
   } catch (e) { showToast('Erro!', true); }
 }
-

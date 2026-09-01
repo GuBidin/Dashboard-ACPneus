@@ -1,5 +1,5 @@
 // ======================================================
-// CUSTOS.JS \xe2\x80\x94 Margem de lucro, custos fixos, fornecedores, compras
+// CUSTOS.JS — Margem de lucro, custos fixos, fornecedores, compras
 // ======================================================
 
 // ======================================================
@@ -56,10 +56,17 @@ function renderMargem() {
     .filter(m => m.tipo === 'venda')
     .reduce((s, m) => s + parseFloat(m.total || 0), 0);
 
-  // Custo dos pneus vendidos
+  // Custo dos pneus vendidos — usa o custo real cadastrado no pneu (p.custo),
+  // NÃO o valor_unit da movimentação de venda (que é o preço de VENDA, não o
+  // custo). Usar valor_unit ali fazia "custo" e "receita" ficarem sempre
+  // idênticos, zerando o lucro artificialmente.
   const custoPneus = movimentacoes
     .filter(m => m.tipo === 'venda')
-    .reduce((s, m) => s + (parseFloat(m.valor_unit || 0) * m.quantidade), 0);
+    .reduce((s, m) => {
+      const pneu = pneus.find(p => p.id === m.pneu_id);
+      const custoUnit = pneu ? parseFloat(pneu.custo || 0) : 0;
+      return s + custoUnit * m.quantidade;
+    }, 0);
 
   // Total custos fixos do mês
   const totalFixos = custosFixos.reduce((s, c) => s + parseFloat(c.valor || 0), 0);
@@ -90,8 +97,8 @@ function renderMargem() {
     <div class="metric-card">
       <div class="metric-icon coral"><svg viewBox="0 0 24 24"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/></svg></div>
       <div class="metric-label">Custos do mês</div>
-      <div class="metric-value sm">${brl(totalFixos)}</div>
-      <div class="metric-sub">${nomeMes} ${anoAtual}</div>
+      <div class="metric-value sm">${brl(custoTotal)}</div>
+      <div class="metric-sub">fixos + pneus vendidos</div>
     </div>
     <div class="metric-card">
       <div class="metric-icon ${lucro >= 0 ? 'green' : 'coral'}">
@@ -135,6 +142,15 @@ function renderMargem() {
       <div class="margem-row"><span>Custo pneus vendidos</span><span>${brl(custoPneus)}</span></div>
       <div class="margem-row total"><span>Total</span><span class="margem-negativo">${brl(custoTotal)}</span></div>
     </div>
+  </div>
+
+  <div class="margem-card" style="margin-top:16px">
+    <div class="card-header" style="margin-bottom:16px;padding-bottom:12px;border-bottom:0.5px solid var(--border)">
+      <svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:var(--blue);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/></svg>
+      <span class="card-title">Compras de estoque — ${nomeMes} (informativo)</span>
+    </div>
+    <div class="margem-row"><span>Total comprado de fornecedores</span><span>${brl(totalCompras)}</span></div>
+    <div style="color:var(--text-hint);font-size:12px;margin-top:4px">Não entra no cálculo de custo/lucro acima — vira custo só quando o pneu é vendido.</div>
   </div>`;
 }
 
@@ -482,5 +498,3 @@ function renderCompras() {
     </div>
   </div>`;
 }
-
-

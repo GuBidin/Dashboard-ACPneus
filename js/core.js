@@ -1,7 +1,8 @@
 // ======================================================
-// CORE.JS \xe2\x80\x94 Autentica\xc3\xa7\xc3\xa3o, sess\xc3\xa3o, api(), estado global, navega\xc3\xa7\xc3\xa3o entre abas
-// Carregado primeiro: define fun\xc3\xa7\xc3\xb5es e vari\xc3\xa1veis usadas por todos os outros arquivos
+// CORE.JS — Autenticação, sessão, api(), estado global, navegação entre abas
+// Carregado primeiro: define funções e variáveis usadas por todos os outros arquivos
 // ======================================================
+
 
 // ======================================================
 // AUTENTICAÇÃO, SESSÃO E SEGURANÇA
@@ -186,5 +187,3 @@ async function showTab(tab) {
   if (tab === 'pneus') { document.getElementById('main-content').innerHTML = await renderPneus(); }
   if (tab === 'custos') {document.getElementById('main-content').innerHTML = await renderCustos();}
 }
-
-

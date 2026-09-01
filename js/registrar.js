@@ -1,5 +1,5 @@
 // ======================================================
-// REGISTRAR.JS \xe2\x80\x94 Formul\xc3\xa1rio de novo atendimento
+// REGISTRAR.JS — Formulário de novo atendimento
 // ======================================================
 
 // ======================================================
@@ -100,4 +100,3 @@ async function registrar() {
   btn.disabled = false;
   btn.textContent = 'Registrar atendimento';
 }
-

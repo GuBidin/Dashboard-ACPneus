@@ -1,5 +1,5 @@
 // ======================================================
-// GERENCIAR.JS \xe2\x80\x94 Funcion\xc3\xa1rios, servi\xc3\xa7os, atendimentos, ve\xc3\xadculos, modal
+// GERENCIAR.JS — Funcionários, serviços, atendimentos, veículos, modal
 // ======================================================
 
 // ======================================================
@@ -344,4 +344,3 @@ async function deleteServico(id) {
   try { await api('servicos?id=eq.' + id, 'DELETE'); showToast('Serviço removido!'); showTab('gerenciar'); }
   catch (e) { showToast('Erro ao remover!', true); }
 }
-
